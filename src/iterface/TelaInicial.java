@@ -1,6 +1,7 @@
 package iterface;
 
 import connections.Connect;
+import connections.UserDao;
 
 import javax.swing.*;
 import java.awt.*;
@@ -118,7 +119,7 @@ public class TelaInicial extends JFrame {
                 String senha = new String(campoSenha.getPassword());
 
                 // Verificando a autenticação no banco de dados
-                Connect.UserDao userDao = new Connect.UserDao();
+                UserDao userDao = new UserDao();
                 int opc = userDao.autenticarUsuario(email, senha);
                 if (opc == 1) {//usuario
                     dispose();
