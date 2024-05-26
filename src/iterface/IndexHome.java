@@ -15,6 +15,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 
 public class IndexHome extends JFrame {
+
     private JTree directoryTree;
     private DefaultListModel<String> livroListModel;
     private JList<String> livroList;
@@ -74,28 +75,25 @@ public class IndexHome extends JFrame {
         preencherListaLivros(livroListModel, nomeUsuario);
         painelCentro.add(scrollPane, BorderLayout.CENTER);
 
+        //atualizacao da lista de livros cada vez que uma letra é digitada
         campoPesquisa.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
                 atualizarListaLivros();
             }
-
             @Override
             public void removeUpdate(DocumentEvent e) {
                 atualizarListaLivros();
             }
-
             @Override
             public void changedUpdate(DocumentEvent e) {
                 atualizarListaLivros();
             }
         });
-        // Adiciona o painel principal à janela
         add(mainPanel);
         // Adiciona a árvore ao painel principal
         mainPanel.add(painelCentro, BorderLayout.CENTER);
         mainPanel.add(new JScrollPane(directoryTree), BorderLayout.WEST); // Adiciona a árvore em um JScrollPane para rolagem
-        // Torna a janela visível
         setVisible(true);
     }
 
@@ -117,7 +115,7 @@ public class IndexHome extends JFrame {
         }
     }
 
-
+    //Metodo para atualizacao da lista com os livros enquanto pesquisa
     public void atualizarListaLivros() {
         String textoPesquisa = campoPesquisa.getText().toLowerCase();
         DefaultListModel<String> novoModelo = new DefaultListModel<>();
@@ -137,7 +135,7 @@ public class IndexHome extends JFrame {
                                                       boolean expanded, boolean leaf, int row, boolean hasFocus) {
             JLabel label = (JLabel) super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
 
-            // Obter o galho atual da árvore
+            // Obtendo o galho atual da árvore
             DefaultMutableTreeNode galho = (DefaultMutableTreeNode) value;
 
             //verifica se está retornando uma string, caso sim atribui a uma variavel pra verificacao de igualdade e atribuicao da imagem de acordo com o galho

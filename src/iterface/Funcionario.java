@@ -49,10 +49,10 @@ public class Funcionario extends JFrame {
                 livroListModel.addElement(titulo);
             }
         });
-        //remov livro
+        //remover livro
         removerButton.addActionListener(e -> removerLivro());
 
-        //edit livro
+        //editar livro
         editarButton.addActionListener(e -> {
             int indiceSelecionado = livroList.getSelectedIndex();
             if (indiceSelecionado != -1) {
@@ -72,11 +72,9 @@ public class Funcionario extends JFrame {
 
         // Preenche a lista de livros
         preencherListaLivros(livroListModel);
-
-        // Torna a janela visível
         setVisible(true);
     }
-
+    //Metodo pra preencher a lista com os livros do banco de dados
     private void preencherListaLivros(DefaultListModel<String> livrosModel) {
         String sql = "SELECT titulo FROM dados_dos_livros";
         try (PreparedStatement stmt = Connect.getConnect().prepareStatement(sql);
@@ -89,7 +87,7 @@ public class Funcionario extends JFrame {
             e.printStackTrace();
         }
     }
-
+    //Metodo pra adicionar um livro no banco
     private void adicionarLivro(String titulo, String autor, String classificacao) {
         // Inserir o livro no banco de dados
         String sql = "INSERT INTO dados_dos_livros (titulo, autor, classificacao) VALUES (?, ?, ?)";
@@ -104,7 +102,7 @@ public class Funcionario extends JFrame {
             JOptionPane.showMessageDialog(this, "Erro ao adicionar o livro.", "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
-
+    //Metodo de escolha do livro na lista para depois chamar o metodo de remoçao no banco
     private void removerLivro() {
 
         int indiceSelecionado = livroList.getSelectedIndex();
@@ -116,7 +114,7 @@ public class Funcionario extends JFrame {
             JOptionPane.showMessageDialog(this, "Selecione um livro para remover.", "Aviso", JOptionPane.WARNING_MESSAGE);
         }
     }
-
+    //Metodo pra remover um livro do banco
     private void removerLivroDoBanco(String titulo) {
         try (
                 PreparedStatement stmt = Connect.getConnect().prepareStatement("DELETE FROM dados_dos_livros WHERE titulo = ?")) {
@@ -127,34 +125,8 @@ public class Funcionario extends JFrame {
             JOptionPane.showMessageDialog(this, "Erro ao remover livro do banco de dados.", "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
-    private String getAutorLivro(String titulo) {
-        String sql = "SELECT autor FROM dados_dos_livros WHERE titulo = ?";
-        try (PreparedStatement stmt = Connect.getConnect().prepareStatement(sql)) {
-            stmt.setString(1, titulo);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getString("autor");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
 
-    private String getClassificacaoLivro(String titulo) {
-        String sql = "SELECT classificacao FROM dados_dos_livros WHERE titulo = ?";
-        try (PreparedStatement stmt = Connect.getConnect().prepareStatement(sql)) {
-            stmt.setString(1, titulo);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getString("classificacao");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
+    //Metodo pra atualizar o livro no banco
     private void atualizarLivro(String tituloAtual, String novoTitulo, String novoAutor, String novaClassificacao) {
         // Atualizar as informações do livro no banco de dados
         String sql = "UPDATE dados_dos_livros SET titulo = ?, autor = ?, classificacao = ? WHERE titulo = ?;";
@@ -170,6 +142,36 @@ public class Funcionario extends JFrame {
         }
     }
 
+    //Metodo pra pegar o autor de um livro selecionado da lista
+    private String getAutorLivro(String titulo) {
+        String sql = "SELECT autor FROM dados_dos_livros WHERE titulo = ?";
+        try (PreparedStatement stmt = Connect.getConnect().prepareStatement(sql)) {
+            stmt.setString(1, titulo);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("autor");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    //Metodo pra pegar a classificaçao de um livro selecionado da lista
+    private String getClassificacaoLivro(String titulo) {
+        String sql = "SELECT classificacao FROM dados_dos_livros WHERE titulo = ?";
+        try (PreparedStatement stmt = Connect.getConnect().prepareStatement(sql)) {
+            stmt.setString(1, titulo);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("classificacao");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    //Lista dos livros
     public static DefaultListModel<String> getLivroListModel() {
         return livroListModel;
     }

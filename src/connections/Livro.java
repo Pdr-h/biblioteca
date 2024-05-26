@@ -1,5 +1,5 @@
 package connections;
-
+//getters e setters do livro
 public class Livro{
     private String classificacao;
     private String autor;

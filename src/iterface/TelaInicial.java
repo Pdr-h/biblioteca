@@ -1,8 +1,6 @@
 package iterface;
 
-import connections.Connect;
 import connections.UserDao;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -135,10 +133,8 @@ public class TelaInicial extends JFrame {
                 }
             }
         });
-        // Adiciona os painéis à tela
         contentPane.add(painelEsquerdo);
         contentPane.add(painelDireito);
-        // Torna a janela visível
         setVisible(true);
     }
 }

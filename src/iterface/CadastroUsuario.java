@@ -2,7 +2,6 @@ package iterface;
 
 import connections.User;
 import connections.UserDao;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -14,7 +13,7 @@ public class CadastroUsuario extends JFrame {
         setTitle("Cadastro de Usuário");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(500, 650);
-        setLocationRelativeTo(null); // Centraliza a janela na tela
+        setLocationRelativeTo(null);
         setResizable(false);
 
         // Container principal
@@ -68,7 +67,7 @@ public class CadastroUsuario extends JFrame {
         gbc.gridy = 7;
         gbc.anchor = GridBagConstraints.ABOVE_BASELINE;
         contentPane.add(botao, gbc);
-
+        //Evento do botao Cadastro, para cadastrar ususario no banco
         botao.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
 
@@ -77,13 +76,22 @@ public class CadastroUsuario extends JFrame {
                 String email = campoEmail.getText();
                 String senha = new String(campoSenha.getPassword());
 
-                // Criando um novo usuario com os dados inseridos
-                User novoUsuario = new User();
-                novoUsuario.setNome(nome);
-                novoUsuario.setEmail(email);
-                novoUsuario.setSenha(senha);
+                // Interrompe o cadastro se estiver vazio algum campo
+                if (nome.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Digite um nome válido!");
+                    return;
+                }
+                if (email.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Digite um email válido!");
+                    return;
+                }
+                if (senha.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "O campo senha precisa ser preenchido!");
+                    return;
+                }
 
                 // Cadastrando o novo usuario dentro do banco de dados
+                User novoUsuario = new User();
                 UserDao userDao = new UserDao();
                 userDao.cadastrarUser(novoUsuario);
                 JOptionPane.showMessageDialog(null, "CADASTRO CONCLUÍDO", "CADASTRO", JOptionPane.INFORMATION_MESSAGE);

@@ -1,5 +1,5 @@
 package connections;
-
+//getters e setters do usuario
 public class User {
     private String nome;
     private String email;

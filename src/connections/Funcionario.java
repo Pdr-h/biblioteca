@@ -1,5 +1,5 @@
 package connections;
-
+//brevemente teremos o cadastro de funcionarios.
 public class Funcionario {
     private String nome;
     private String senha;

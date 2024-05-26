@@ -1,8 +1,7 @@
 package connections;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-
+import java.sql.*;
+//Metodo para cadastrar lirvos no banco
 public class LivroDAO {
         public void cadastrarLivro(Livro livros) {
             String sql = "INSERT INTO DADOS_DOS_LIVROS (CLASSIFICACAO, AUTOR, TITULO) VALUES (?, ?, ?)";

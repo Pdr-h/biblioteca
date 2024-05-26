@@ -1,7 +1,6 @@
 package iterface;
 
 import connections.Connect;
-
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -24,11 +23,13 @@ public class AdquirirLivro extends JFrame {
         setTitle("Adquirir Livro");
         setSize(900, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null); // Centraliza a janela na tela
+        setLocationRelativeTo(null);
         setResizable(false);
+
         // Container principal
         Container contentPane = getContentPane();
         contentPane.setLayout(new BorderLayout());
+
         // Lista de livros
         livroListModel = new DefaultListModel<>();
         livroList = new JList<>(livroListModel);
@@ -36,24 +37,23 @@ public class AdquirirLivro extends JFrame {
         contentPane.add(scrollPane, BorderLayout.CENTER);
         contentPane.add(campoPesquisa, BorderLayout.NORTH);
 
+        //atualizacao da lista de livros cada vez que uma letra é digitada
         campoPesquisa.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
                 atualizarListaLivros();
             }
-
             @Override
             public void removeUpdate(DocumentEvent e) {
                 atualizarListaLivros();
             }
-
             @Override
             public void changedUpdate(DocumentEvent e) {
                 atualizarListaLivros();
             }
         });
 
-        // Botão adicionar
+        // Botão Emprestimo do livro
         JButton botaoAdquirir = new JButton("EMPRESTIMO");
         botaoAdquirir.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -62,10 +62,9 @@ public class AdquirirLivro extends JFrame {
                     int selectedIndex = livroList.getSelectedIndex();
                     String livroSelecionado = livroList.getSelectedValue();
                     dispose();
-
+                    //Pega o id do usuario a partir do email em que esta logado
                     String sqlUsuario = "SELECT id_usuario FROM usuario WHERE email = ?";
                     int idUsuario = -1;
-
                     try (PreparedStatement stmtUsuario = Connect.getConnect().prepareStatement(sqlUsuario)) {
                         stmtUsuario.setString(1, emailUsuario);
                         try (ResultSet rsUsuario = stmtUsuario.executeQuery()) {
@@ -77,10 +76,9 @@ public class AdquirirLivro extends JFrame {
                         ex.printStackTrace();
                     }
                     if (idUsuario != -1) {
-                        // Inserção na tabela user_livro com o id_usuario correto
+                        // Inserção na tabela user_livro com o id_usuario
                         String sql = "INSERT INTO user_livro (id_livro, id_usuario) " +
                                 "VALUES ((SELECT id_livro FROM dados_dos_livros WHERE titulo = ?), ?)";
-
                         try (PreparedStatement stmt = Connect.getConnect().prepareStatement(sql)) {
                             stmt.setString(1, livroSelecionado);
                             stmt.setInt(2, idUsuario); // Usando o id_usuario encontrado
@@ -88,10 +86,8 @@ public class AdquirirLivro extends JFrame {
                         } catch (SQLException ex) {
                             ex.printStackTrace();
                         }
-                    } else {
-                        // Lidar com o caso em que o id_usuario não foi encontrado
-                        System.err.println("ID de usuário não encontrado para o email: " + emailUsuario);
                     }
+                    //caso o usuario seja encontrado no banco e o livro esteja selecionado, exibe mensagem e retorna a tela Home
                     JOptionPane.showMessageDialog(null, "Você adquiriu o livro: " + livroSelecionado);
                     livroListModel.remove(selectedIndex);
                     IndexHome indexHome = new IndexHome(emailUsuario);
@@ -102,14 +98,11 @@ public class AdquirirLivro extends JFrame {
             }
         });
 
-
         contentPane.add(botaoAdquirir, BorderLayout.SOUTH);
-        // Preenche a lista de livros
         preencherListaLivros(livroListModel);
-        // Torna a janela visível
         setVisible(true);
     }
-
+    //Metodo para atualizacao da lista com os livros enquanto pesquisa
     public void atualizarListaLivros() {
         String textoPesquisa = campoPesquisa.getText().toLowerCase();
         DefaultListModel<String> novoModelo = new DefaultListModel<>();
@@ -134,9 +127,5 @@ public class AdquirirLivro extends JFrame {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
-
-    public void livroAtribuido(String titulo) {
-
     }
 }

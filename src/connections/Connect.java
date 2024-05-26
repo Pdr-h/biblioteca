@@ -8,6 +8,7 @@ public class Connect {
     private static final String password = "fqghDHgiBrmAkwSkWVQcyCmxfvTVbLLp";
     private static Connection conn;
 
+    //Criando uma conexao com o banco usando a bilbioteca sql
     public static Connection getConnect() {
         try {
 

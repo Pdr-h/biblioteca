@@ -1,11 +1,9 @@
 package connections;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class UserDao {
+    //cadastrando usuario dentro do banco
     public void cadastrarUser(User usuario) {
         String sql = "INSERT INTO usuario (NOME, EMAIL, SENHA) VALUES (?, ?, ?)";
         try (Connection conn = Connect.getConnect();
@@ -18,7 +16,7 @@ public class UserDao {
             e.printStackTrace();
         }
     }
-
+    //Metodo de autenticaçao do usuario, e verificacao se é um usuario ou funcionario(atualmente o unico funcionario é seguidamente, login e senha: admin, admin)
     public int autenticarUsuario(String email, String senha) {
         String sql = "SELECT 1 AS tipo FROM usuario WHERE email = ? AND senha = ? " +
                 "UNION ALL " +
@@ -37,23 +35,6 @@ public class UserDao {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return 0; // Retorna 0 se não encontrar correspondências ou ocorrer um erro
-    }
-
-    public String getNomeUsuario(String email) {
-        String nomeUsuario = null;
-        String sql = "SELECT nome FROM usuario WHERE email = ?";
-        try (Connection conn = Connect.getConnect();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, email);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    nomeUsuario = rs.getString("nome");
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return nomeUsuario;
+        return 0;
     }
 }
