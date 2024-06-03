@@ -36,12 +36,13 @@ public class IndexHome extends JFrame {
         // Mapeamento dos nomes dos itens da barra lateral e inicio do index
         classMap = new HashMap<>();
         classMap.put("Emprestimo de Livro", AdquirirLivro.class);
+        classMap.put("Sair", LogoutAction.class);
         DefaultMutableTreeNode Tronco = new DefaultMutableTreeNode("MENU");
         //pegando o nome declarado acima pra classe/exibicao no index e adicionando no tronco como um galho
-        for (String itemName : classMap.keySet()) {
-            DefaultMutableTreeNode galhos = new DefaultMutableTreeNode(itemName);
-            Tronco.add(galhos);
-        }
+        DefaultMutableTreeNode galhoEmprestimo = new DefaultMutableTreeNode("Emprestimo de Livro");
+        Tronco.add(galhoEmprestimo);
+        DefaultMutableTreeNode galhoSair = new DefaultMutableTreeNode("Sair");
+        Tronco.add(galhoSair);
         //Pegando o tronco e transformando em arvore
         directoryTree = new JTree(Tronco);
         directoryTree.setBackground(Color.decode("#55AA98"));
@@ -56,8 +57,13 @@ public class IndexHome extends JFrame {
                     try {
                         // Cria uma instância da classe selecionada e exibe
                         dispose();
-                        AdquirirLivro adquirirLivro = new AdquirirLivro(nomeUsuario);
-                        adquirirLivro.setVisible(true);
+                        if (selectedClass == AdquirirLivro.class) {
+                            AdquirirLivro adquirirLivro = new AdquirirLivro(nomeUsuario);
+                            adquirirLivro.setVisible(true);
+                        }
+                        if (selectedClass == LogoutAction.class) {
+                            new LogoutAction(IndexHome.this);
+                        }
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
@@ -99,21 +105,25 @@ public class IndexHome extends JFrame {
 
     // Método para preencher a lista de livros
     private void preencherListaLivros(DefaultListModel<String> livrosModel, String emailUsuario) {
-        String sql = "SELECT titulo FROM dados_dos_livros " +
+        String sql = "SELECT titulo, autor, classificacao FROM dados_dos_livros " +
                 "INNER JOIN user_livro ON dados_dos_livros.id_livro = user_livro.id_livro " +
                 "INNER JOIN usuario ON user_livro.id_usuario = usuario.id_usuario " +
-                "WHERE usuario.email = ?"; // Corrigido para usar o email do usuário
+                "WHERE usuario.email = ?";
         try (PreparedStatement stmt = Connect.getConnect().prepareStatement(sql)) {
             stmt.setString(1, emailUsuario);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                String tituloLivro = rs.getString("titulo");
-                livrosModel.addElement(tituloLivro);
+                String titulo = rs.getString("titulo");
+                String autor = rs.getString("autor");
+                String classificacao = rs.getString("classificacao");
+                String livroInfo = String.format("%s - %s - %s", titulo, autor, classificacao);
+                livrosModel.addElement(livroInfo);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
+
 
     //Metodo para atualizacao da lista com os livros enquanto pesquisa
     public void atualizarListaLivros() {

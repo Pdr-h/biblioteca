@@ -2,14 +2,10 @@ package iterface;
 
 import connections.Connect;
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
+import javax.swing.event.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.awt.event.*;
+import java.sql.*;
 
 public class AdquirirLivro extends JFrame {
     private JTextField campoPesquisa = new JTextField();
@@ -77,10 +73,12 @@ public class AdquirirLivro extends JFrame {
                     }
                     if (idUsuario != -1) {
                         // Inserção na tabela user_livro com o id_usuario
+                        String[] partes = livroSelecionado.split(" - ");
+                        String tituloLivro = partes[0]; //Pegando o título que está na primeira parte da string
                         String sql = "INSERT INTO user_livro (id_livro, id_usuario) " +
                                 "VALUES ((SELECT id_livro FROM dados_dos_livros WHERE titulo = ?), ?)";
                         try (PreparedStatement stmt = Connect.getConnect().prepareStatement(sql)) {
-                            stmt.setString(1, livroSelecionado);
+                            stmt.setString(1, tituloLivro);
                             stmt.setInt(2, idUsuario); // Usando o id_usuario encontrado
                             stmt.executeUpdate();
                         } catch (SQLException ex) {
@@ -102,6 +100,7 @@ public class AdquirirLivro extends JFrame {
         preencherListaLivros(livroListModel);
         setVisible(true);
     }
+
     //Metodo para atualizacao da lista com os livros enquanto pesquisa
     public void atualizarListaLivros() {
         String textoPesquisa = campoPesquisa.getText().toLowerCase();
@@ -117,12 +116,15 @@ public class AdquirirLivro extends JFrame {
 
     // Método para preencher a lista de livros com os livros cadastrados no banco de dados
     private void preencherListaLivros(DefaultListModel<String> livrosModel) {
-        String sql = "SELECT titulo FROM dados_dos_livros";
+        String sql = "SELECT titulo, autor, classificacao FROM dados_dos_livros";
         try (PreparedStatement stmt = Connect.getConnect().prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 String tituloLivro = rs.getString("titulo");
-                livrosModel.addElement(tituloLivro);
+                String autor = rs.getString("autor");
+                String classificacao = rs.getString("classificacao");
+                String livroInfo = String.format("%s - %s - %s", tituloLivro, autor, classificacao);
+                livrosModel.addElement(livroInfo);
             }
         } catch (SQLException e) {
             e.printStackTrace();

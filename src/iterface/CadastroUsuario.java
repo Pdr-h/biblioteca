@@ -102,6 +102,22 @@ public class CadastroUsuario extends JFrame {
                 inicio.setVisible(true);
             }
         });
+        // Botão VOLTAR
+        JButton botaoVoltar = new JButton("Voltar");
+        botaoVoltar.setPreferredSize(new Dimension(150, 40));
+        botaoVoltar.setBackground(Color.decode("#55AA98"));
+        botaoVoltar.setForeground(Color.WHITE);
+        gbc.gridy = 8; // Ajuste o número de acordo com a posição desejada
+        contentPane.add(botaoVoltar, gbc);
+        // Evento do botão Voltar
+        botaoVoltar.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // Fecha a janela de cadastro e abre a tela inicial
+                dispose();
+                TelaInicial telaInicial = new TelaInicial();
+                telaInicial.setVisible(true);
+            }
+        });
         setVisible(true);
     }
 
