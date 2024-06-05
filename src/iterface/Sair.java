@@ -2,9 +2,9 @@ package iterface;
 
 import javax.swing.*;
 
-public class LogoutAction {
+public class Sair {
 
-    public LogoutAction(JFrame parentFrame) {
+    public Sair(JFrame parentFrame) {
         Object[] options = {"LOGIN", "SAIR"};
         int resposta = JOptionPane.showOptionDialog(parentFrame,
                 "Deseja ir para a Tela de Login ou Fechar a Aplicação?",

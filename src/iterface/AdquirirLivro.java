@@ -1,6 +1,10 @@
 package iterface;
 
 import connections.Connect;
+import connections.Livro;
+import connections.LivroCompleto;
+import connections.LivroDAO;
+
 import javax.swing.*;
 import javax.swing.event.*;
 import java.awt.*;
@@ -12,9 +16,12 @@ public class AdquirirLivro extends JFrame {
     private DefaultListModel<String> livroListModel;
     private JList<String> livroList;
     private String emailUsuario;
+    private LivroDAO livroDAO;
 
     public AdquirirLivro(String emailUsuario) {
         this.emailUsuario = emailUsuario;
+        livroDAO = new LivroDAO();
+
         // Configurações da janela
         setTitle("Adquirir Livro");
         setSize(900, 600);
@@ -72,7 +79,7 @@ public class AdquirirLivro extends JFrame {
                         ex.printStackTrace();
                     }
                     if (idUsuario != -1) {
-                        // Inserção na tabela user_livro com o id_usuario
+                        // Inserçao na tabela user_livro com o id_usuario
                         String[] partes = livroSelecionado.split(" - ");
                         String tituloLivro = partes[0]; //Pegando o título que está na primeira parte da string
                         String sql = "INSERT INTO user_livro (id_livro, id_usuario) " +
@@ -95,9 +102,42 @@ public class AdquirirLivro extends JFrame {
                 }
             }
         });
+        JButton dadosButton = new JButton("Dados do Livro");
+        dadosButton.addActionListener(e -> {
+            int indiceSelecionado = livroList.getSelectedIndex();
+            if (indiceSelecionado != -1) {
+                String tituloSelecionado = livroListModel.getElementAt(indiceSelecionado);
+                Livro livroSelecionado = LivroCompleto.getLivroPorTitulo(tituloSelecionado);
 
-        contentPane.add(botaoAdquirir, BorderLayout.SOUTH);
-        preencherListaLivros(livroListModel);
+                if (livroSelecionado != null) {
+                    // Verifica se o livro selecionado é uma instância de LivroCompleto
+                    if (livroSelecionado instanceof LivroCompleto) {
+                        LivroCompleto livroCompleto = (LivroCompleto) livroSelecionado;
+                        // Construir mensagem com todas as informações do livro
+                        String mensagem = "Título: " + livroCompleto.getTitulo() + "\n" +
+                                "Autor: " + livroCompleto.getAutor() + "\n" +
+                                "Classificação: " + livroCompleto.getClassificacao() + "\n" +
+                                "Avaliação Público: " + livroCompleto.getAvaliacaoPub() + "\n" +
+                                "Ano de Publicação: " + livroCompleto.getAnoPub() + "\n" +
+                                "Local de Publicação: " + livroCompleto.getLocalPub() + "\n" +
+                                "ISBN: " + livroCompleto.getIsbn();
+
+                        JOptionPane.showMessageDialog(this, mensagem, "Detalhes do Livro", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(this, "Erro ao recuperar os dados do livro.", "Erro", JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Selecione um livro!", "Aviso", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+        //painel pra botoes e adicionando os botoes
+        JPanel botoesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        botoesPanel.add(dadosButton);
+        botoesPanel.add(botaoAdquirir);
+        contentPane.add(botoesPanel, BorderLayout.SOUTH);
+
+        preencherListaLivros();
         setVisible(true);
     }
 
@@ -113,21 +153,8 @@ public class AdquirirLivro extends JFrame {
         }
         livroList.setModel(novoModelo);
     }
-
-    // Método para preencher a lista de livros com os livros cadastrados no banco de dados
-    private void preencherListaLivros(DefaultListModel<String> livrosModel) {
-        String sql = "SELECT titulo, autor, classificacao FROM dados_dos_livros";
-        try (PreparedStatement stmt = Connect.getConnect().prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                String tituloLivro = rs.getString("titulo");
-                String autor = rs.getString("autor");
-                String classificacao = rs.getString("classificacao");
-                String livroInfo = String.format("%s - %s - %s", tituloLivro, autor, classificacao);
-                livrosModel.addElement(livroInfo);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+    private void preencherListaLivros() {
+        livroListModel = livroDAO.getLivros();
+        livroList.setModel(livroListModel);
     }
 }

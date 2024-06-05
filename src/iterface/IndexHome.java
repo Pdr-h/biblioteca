@@ -1,17 +1,13 @@
 package iterface;
 
-import connections.Connect;
+import connections.Livro;
+import connections.LivroCompleto;
+import connections.LivroDAO;
 
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.TreeSelectionModel;
+import javax.swing.event.*;
+import javax.swing.tree.*;
 import java.awt.*;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.HashMap;
 
 public class IndexHome extends JFrame {
@@ -20,11 +16,11 @@ public class IndexHome extends JFrame {
     private DefaultListModel<String> livroListModel;
     private JList<String> livroList;
     private HashMap<String, Class<?>> classMap;
-    private JPanel centerPanel = new JPanel();
     private JTextField campoPesquisa = new JTextField();
+    private LivroDAO livroDAO;
 
     public IndexHome(String nomeUsuario) {
-
+        livroDAO = new LivroDAO();
         // Configurações da janela
         setTitle("Home");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -36,7 +32,7 @@ public class IndexHome extends JFrame {
         // Mapeamento dos nomes dos itens da barra lateral e inicio do index
         classMap = new HashMap<>();
         classMap.put("Emprestimo de Livro", AdquirirLivro.class);
-        classMap.put("Sair", LogoutAction.class);
+        classMap.put("Sair", Sair.class);
         DefaultMutableTreeNode Tronco = new DefaultMutableTreeNode("MENU");
         //pegando o nome declarado acima pra classe/exibicao no index e adicionando no tronco como um galho
         DefaultMutableTreeNode galhoEmprestimo = new DefaultMutableTreeNode("Emprestimo de Livro");
@@ -61,8 +57,8 @@ public class IndexHome extends JFrame {
                             AdquirirLivro adquirirLivro = new AdquirirLivro(nomeUsuario);
                             adquirirLivro.setVisible(true);
                         }
-                        if (selectedClass == LogoutAction.class) {
-                            new LogoutAction(IndexHome.this);
+                        if (selectedClass == Sair.class) {
+                            new Sair(IndexHome.this);
                         }
                     } catch (Exception ex) {
                         ex.printStackTrace();
@@ -71,14 +67,15 @@ public class IndexHome extends JFrame {
             }
         });
 
-
         //PESQUISA
         JPanel painelCentro = new JPanel(new BorderLayout());
         painelCentro.add(campoPesquisa, BorderLayout.NORTH);
         livroListModel = new DefaultListModel<>();
         livroList = new JList<>(livroListModel);
         JScrollPane scrollPane = new JScrollPane(livroList);
-        preencherListaLivros(livroListModel, nomeUsuario);
+
+        //preenchimento da lista de acordo com os livros emprestados por um usuario
+        livroDAO.preencherListaLivros(livroListModel, nomeUsuario);
         painelCentro.add(scrollPane, BorderLayout.CENTER);
 
         //atualizacao da lista de livros cada vez que uma letra é digitada
@@ -99,31 +96,9 @@ public class IndexHome extends JFrame {
         add(mainPanel);
         // Adiciona a árvore ao painel principal
         mainPanel.add(painelCentro, BorderLayout.CENTER);
-        mainPanel.add(new JScrollPane(directoryTree), BorderLayout.WEST); // Adiciona a árvore em um JScrollPane para rolagem
+        mainPanel.add(new JScrollPane(directoryTree), BorderLayout.WEST); // Adiciona a arvore em um JScrollPane para rolagem
         setVisible(true);
     }
-
-    // Método para preencher a lista de livros
-    private void preencherListaLivros(DefaultListModel<String> livrosModel, String emailUsuario) {
-        String sql = "SELECT titulo, autor, classificacao FROM dados_dos_livros " +
-                "INNER JOIN user_livro ON dados_dos_livros.id_livro = user_livro.id_livro " +
-                "INNER JOIN usuario ON user_livro.id_usuario = usuario.id_usuario " +
-                "WHERE usuario.email = ?";
-        try (PreparedStatement stmt = Connect.getConnect().prepareStatement(sql)) {
-            stmt.setString(1, emailUsuario);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                String titulo = rs.getString("titulo");
-                String autor = rs.getString("autor");
-                String classificacao = rs.getString("classificacao");
-                String livroInfo = String.format("%s - %s - %s", titulo, autor, classificacao);
-                livrosModel.addElement(livroInfo);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
 
     //Metodo para atualizacao da lista com os livros enquanto pesquisa
     public void atualizarListaLivros() {
@@ -143,6 +118,7 @@ public class IndexHome extends JFrame {
         @Override
         public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected,
                                                       boolean expanded, boolean leaf, int row, boolean hasFocus) {
+
             JLabel label = (JLabel) super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
 
             // Obtendo o galho atual da árvore
@@ -164,3 +140,9 @@ public class IndexHome extends JFrame {
         }
     }
 }
+
+
+
+
+
+

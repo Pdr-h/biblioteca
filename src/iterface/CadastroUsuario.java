@@ -92,6 +92,10 @@ public class CadastroUsuario extends JFrame {
 
                 // Cadastrando o novo usuario dentro do banco de dados
                 User novoUsuario = new User();
+                novoUsuario.setNome(nome);
+                novoUsuario.setEmail(email);
+                novoUsuario.setSenha(senha);
+
                 UserDao userDao = new UserDao();
                 userDao.cadastrarUser(novoUsuario);
                 JOptionPane.showMessageDialog(null, "CADASTRO CONCLUÍDO", "CADASTRO", JOptionPane.INFORMATION_MESSAGE);

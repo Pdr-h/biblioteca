@@ -1,24 +1,30 @@
 package iterface;
 
-import connections.Connect;
+import connections.Livro;
+import connections.LivroCompleto;
+import connections.LivroDAO;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 
 public class Funcionario extends JFrame {
+    private JTextField campoPesquisa = new JTextField();
     private static DefaultListModel<String> livroListModel;
     private JList<String> livroList;
-
+    private LivroDAO livroDAO;
+    private LivroCompleto livroCompleto;
     public Funcionario() {
+        livroDAO = new LivroDAO();
+
         // Configurações da janela
         setTitle("Funcionário");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(900, 600);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
+        setResizable(false);
 
         Container contentPane = getContentPane();
         contentPane.setLayout(new BorderLayout());
@@ -28,152 +34,167 @@ public class Funcionario extends JFrame {
         livroList = new JList<>(livroListModel);
         JScrollPane scrollPane = new JScrollPane(livroList);
         contentPane.add(scrollPane, BorderLayout.CENTER);
+        contentPane.add(campoPesquisa, BorderLayout.NORTH);
+
+        //atualizacao da lista de livros cada vez que uma letra é digitada
+        campoPesquisa.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                atualizarListaLivros();
+            }
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                atualizarListaLivros();
+            }
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                atualizarListaLivros();
+            }
+        });
 
         // Botões no sul
         JPanel botoesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         JButton adicionarButton = new JButton("Adicionar");
         JButton removerButton = new JButton("Remover");
         JButton editarButton = new JButton("Editar");
+        JButton dadosButton = new JButton("Dados do Livro");
+        JButton sair = new JButton("Sair");
         botoesPanel.add(adicionarButton);
         botoesPanel.add(removerButton);
         botoesPanel.add(editarButton);
+        botoesPanel.add(dadosButton);
+        botoesPanel.add(sair);
         contentPane.add(botoesPanel, BorderLayout.SOUTH);
-        //add livro
+
+        // Adicionar livro
         adicionarButton.addActionListener(e -> {
             String titulo = JOptionPane.showInputDialog(this, "Digite o título do livro:");
             String autor = JOptionPane.showInputDialog(this, "Digite o autor do livro:");
             String classificacao = JOptionPane.showInputDialog(this, "Digite a classificação do livro:");
+            String avPubStr = JOptionPane.showInputDialog(this, "Digite a avaliação do Livro:");
+            String anoPubStr = JOptionPane.showInputDialog(this, "Digite o ano de publicação do Livro:");
+            String localPub = JOptionPane.showInputDialog(this, "Digite o local de publicação do Livro:");
+            String isbn = JOptionPane.showInputDialog(this, "Digite o ISBN do Livro:");
 
-            if (titulo != null && autor != null && classificacao != null) {
-                adicionarLivro(titulo, autor, classificacao);
-                livroListModel.addElement(titulo);
+            if (titulo != null && autor != null && classificacao != null && avPubStr != null && anoPubStr != null && localPub != null && isbn != null) {
+                try {
+                    int avPub = Integer.parseInt(avPubStr);
+                    int anoPub = Integer.parseInt(anoPubStr);
+                    livroDAO.adicionarLivro(titulo, autor, classificacao, avPub, anoPub, localPub, isbn);
+                    livroListModel.addElement(titulo);
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this, "Ano de publicação ou Avaliação devem ser um número inteiro.", "Erro", JOptionPane.ERROR_MESSAGE);
+                }
             }
         });
-        //remover livro
-        removerButton.addActionListener(e -> removerLivro());
 
-        //editar livro
+        // Remover livro
+        removerButton.addActionListener(e -> {
+            int indiceSelecionado = livroList.getSelectedIndex();
+            Object[] options = {"Sim", "Não"}; // Opções para o diálogo
+            int result = JOptionPane.showOptionDialog(this, "Deseja mesmo remover este livro?", "Remover", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[1]);
+
+            if (result == 0) { // "Sim"
+                if (indiceSelecionado != -1) {
+                    String tituloRemovido = livroListModel.getElementAt(indiceSelecionado);
+                    livroListModel.remove(indiceSelecionado);
+                    livroDAO.removerLivro(tituloRemovido);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Selecione um livro para remover.", "Aviso", JOptionPane.WARNING_MESSAGE);
+                }
+            } else if (result == 1) { // "Não" ou fechar a caixa d mensagem, cancela a remoçao
+                return;
+            }
+        });
+
+
+        // Editar livro
         editarButton.addActionListener(e -> {
             int indiceSelecionado = livroList.getSelectedIndex();
             if (indiceSelecionado != -1) {
                 String tituloAtual = livroListModel.getElementAt(indiceSelecionado);
-                String novoTitulo = JOptionPane.showInputDialog(this, "Digite o novo título do livro:", tituloAtual);
-                String novoAutor = JOptionPane.showInputDialog(this, "Digite o novo autor do livro:", getAutorLivro(tituloAtual));
-                String novaClassificacao = JOptionPane.showInputDialog(this, "Digite a nova classificação do livro:", getClassificacaoLivro(tituloAtual));
+                String novoTitulo = JOptionPane.showInputDialog(this, "Novo título do livro:", tituloAtual);
+                String novoAutor = JOptionPane.showInputDialog(this, "Novo autor do livro:", livroDAO.getAutorLivro(tituloAtual));
+                String novaClassificacao = JOptionPane.showInputDialog(this, "Nova classificação do livro:", livroDAO.getClassificacaoLivro(tituloAtual));
+                String novoAvPubStr = JOptionPane.showInputDialog(this, "Avaliação do Livro:", livroDAO.getAvaliacaoLivro(tituloAtual));
+                String novoAnoPubStr = JOptionPane.showInputDialog(this, "Novo ano de publicação do Livro:", livroDAO.getAnoPublicacao(tituloAtual));
+                String novoLocalPub = JOptionPane.showInputDialog(this, "Local de publicação do Livro:", livroDAO.getLocalPublicacao(tituloAtual));
+                String novoISBN = JOptionPane.showInputDialog(this, "Novo ISBN do Livro:", livroDAO.getIsbn(tituloAtual));
 
-                if (novoTitulo != null && novoAutor != null && novaClassificacao != null) {
-                    atualizarLivro(tituloAtual, novoTitulo, novoAutor, novaClassificacao);
-                    livroListModel.setElementAt(novoTitulo, indiceSelecionado);
+                if (novoTitulo != null && novoAutor != null && novaClassificacao != null && novoAvPubStr != null && novoAnoPubStr != null && novoLocalPub != null && novoISBN != null) {
+                    try {
+                        int novoAvPub = Integer.parseInt(novoAvPubStr);
+                        int novoAnoPub = Integer.parseInt(novoAnoPubStr);
+
+                        livroDAO.atualizarLivro(tituloAtual, novoTitulo, novoAutor, novaClassificacao, novoAvPub, novoAnoPub, novoLocalPub, novoISBN);
+                        livroListModel.setElementAt(novoTitulo, indiceSelecionado);
+                    } catch (NumberFormatException ex) {
+                        JOptionPane.showMessageDialog(this, "Ano de publicação deve ser um número inteiro.", "Erro", JOptionPane.ERROR_MESSAGE);
+                    }
                 }
             } else {
                 JOptionPane.showMessageDialog(this, "Selecione um livro para editar.", "Aviso", JOptionPane.WARNING_MESSAGE);
             }
         });
 
+
+        // Botão Dados
+        dadosButton.addActionListener(e -> {
+            int indiceSelecionado = livroList.getSelectedIndex();
+            if (indiceSelecionado != -1) {
+                String tituloSelecionado = livroListModel.getElementAt(indiceSelecionado);
+                Livro livroSelecionado = LivroCompleto.getLivroPorTitulo(tituloSelecionado);
+
+                if (livroSelecionado != null) {
+                    // Verifica se o livro selecionado é uma instância de LivroCompleto
+                    if (livroSelecionado instanceof LivroCompleto) {
+                        LivroCompleto livroCompleto = (LivroCompleto) livroSelecionado;
+                        // Construir mensagem com todas as informações do livro
+                        String mensagem = "Título: " + livroCompleto.getTitulo() + "\n" +
+                                "Autor: " + livroCompleto.getAutor() + "\n" +
+                                "Classificação: " + livroCompleto.getClassificacao() + "\n" +
+                                "Avaliação Público: " + livroCompleto.getAvaliacaoPub() + "\n" +
+                                "Ano de Publicação: " + livroCompleto.getAnoPub() + "\n" +
+                                "Local de Publicação: " + livroCompleto.getLocalPub() + "\n" +
+                                "ISBN: " + livroCompleto.getIsbn();
+
+                        JOptionPane.showMessageDialog(this, mensagem, "Detalhes do Livro", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(this, "Erro ao recuperar os dados do livro.", "Erro", JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Selecione um livro!", "Aviso", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+
+        //botao SAIR
+        sair.addActionListener(e -> {
+            new Sair(Funcionario.this);
+        });
+
+
+
+
         // Preenche a lista de livros
-        preencherListaLivros(livroListModel);
+        preencherListaLivros();
         setVisible(true);
     }
-    //Metodo pra preencher a lista com os livros do banco de dados
-    private void preencherListaLivros(DefaultListModel<String> livrosModel) {
-        String sql = "SELECT titulo FROM dados_dos_livros";
-        try (PreparedStatement stmt = Connect.getConnect().prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                String tituloLivro = rs.getString("titulo");
-                livrosModel.addElement(tituloLivro);
+    //Metodo pra retornar os livros
+    private void preencherListaLivros() {
+        livroListModel = livroDAO.getLivros();
+        livroList.setModel(livroListModel);
+    }
+    //Metodo para atualizacao da lista com os livros enquanto pesquisa
+    public void atualizarListaLivros() {
+        String textoPesquisa = campoPesquisa.getText().toLowerCase();
+        DefaultListModel<String> novoModelo = new DefaultListModel<>();
+        for (int i = 0; i < livroListModel.size(); i++) {
+            String item = livroListModel.getElementAt(i);
+            if (item.toLowerCase().contains(textoPesquisa)) {
+                novoModelo.addElement(item);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
+        livroList.setModel(novoModelo);
     }
-    //Metodo pra adicionar um livro no banco
-    private void adicionarLivro(String titulo, String autor, String classificacao) {
-        // Inserir o livro no banco de dados
-        String sql = "INSERT INTO dados_dos_livros (titulo, autor, classificacao) VALUES (?, ?, ?)";
-        try (
-                PreparedStatement statement = Connect.getConnect().prepareStatement(sql)) {
-            statement.setString(1, titulo);
-            statement.setString(2, autor);
-            statement.setString(3, classificacao);
-            statement.executeUpdate();
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Erro ao adicionar o livro.", "Erro", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-    //Metodo de escolha do livro na lista para depois chamar o metodo de remoçao no banco
-    private void removerLivro() {
-
-        int indiceSelecionado = livroList.getSelectedIndex();
-        if (indiceSelecionado != -1) {
-            String tituloRemovido = livroListModel.getElementAt(indiceSelecionado);
-            livroListModel.remove(indiceSelecionado);
-            removerLivroDoBanco(tituloRemovido);
-        } else {
-            JOptionPane.showMessageDialog(this, "Selecione um livro para remover.", "Aviso", JOptionPane.WARNING_MESSAGE);
-        }
-    }
-    //Metodo pra remover um livro do banco
-    private void removerLivroDoBanco(String titulo) {
-        try (
-                PreparedStatement stmt = Connect.getConnect().prepareStatement("DELETE FROM dados_dos_livros WHERE titulo = ?")) {
-            stmt.setString(1, titulo);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Erro ao remover livro do banco de dados.", "Erro", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    //Metodo pra atualizar o livro no banco
-    private void atualizarLivro(String tituloAtual, String novoTitulo, String novoAutor, String novaClassificacao) {
-        // Atualizar as informações do livro no banco de dados
-        String sql = "UPDATE dados_dos_livros SET titulo = ?, autor = ?, classificacao = ? WHERE titulo = ?;";
-        try (PreparedStatement statement = Connect.getConnect().prepareStatement(sql)) {
-            statement.setString(1, novoTitulo);
-            statement.setString(2, novoAutor);
-            statement.setString(3, novaClassificacao);
-            statement.setString(4, tituloAtual);
-            statement.executeUpdate();
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Erro ao atualizar o livro.", "Erro", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    //Metodo pra pegar o autor de um livro selecionado da lista
-    private String getAutorLivro(String titulo) {
-        String sql = "SELECT autor FROM dados_dos_livros WHERE titulo = ?";
-        try (PreparedStatement stmt = Connect.getConnect().prepareStatement(sql)) {
-            stmt.setString(1, titulo);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getString("autor");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-    //Metodo pra pegar a classificaçao de um livro selecionado da lista
-    private String getClassificacaoLivro(String titulo) {
-        String sql = "SELECT classificacao FROM dados_dos_livros WHERE titulo = ?";
-        try (PreparedStatement stmt = Connect.getConnect().prepareStatement(sql)) {
-            stmt.setString(1, titulo);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getString("classificacao");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    //Lista dos livros
-    public static DefaultListModel<String> getLivroListModel() {
-        return livroListModel;
-    }
-
 }

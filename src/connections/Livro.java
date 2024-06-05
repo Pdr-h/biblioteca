@@ -4,6 +4,8 @@ public class Livro{
     private String classificacao;
     private String autor;
     private String titulo;
+    private int avaliacaoPub;
+    private String isbn;
 
     public String getClassificacao() {
         return classificacao;
@@ -25,4 +27,19 @@ public class Livro{
     public void setTitulo(String titulo) {
         this.titulo = titulo;
     }
+
+    public int getAvaliacaoPub() {
+        return avaliacaoPub;
+    }
+    public void setAvaliacaoPub(int avaliacaoPub) {
+        this.avaliacaoPub = avaliacaoPub;
+    }
+
+    public String getIsbn() {
+        return isbn;
+    }
+    public void setIsbn(String isbn) {
+        this.isbn = isbn;
+    }
+
 }
