@@ -1,8 +1,6 @@
 package iterface;
 
-import connections.Livro;
-import connections.LivroCompleto;
-import connections.LivroDAO;
+import connections.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -112,14 +110,18 @@ public class IndexHome extends JFrame {
         //botao devolver livro
         JButton devolverButton = new JButton("Devolver Livro");
         devolverButton.addActionListener(e -> {
-            int indiceSelecionado = livroList.getSelectedIndex();
+            int indiceSelecionado = livroList.getSelectedIndex(); // Obtém o índice e depois o titulo do livro selecionado da lista atualizada
             if (indiceSelecionado != -1) {
+                String tituloSelecionado = livroList.getModel().getElementAt(indiceSelecionado);
+                // Remove o livro da lista
                 livroListModel.removeElementAt(indiceSelecionado);
+                // Atualiza o banco de dados dizendo que o livro foi devolvido
+                livroDAO.devolverLivro(nomeUsuario, tituloSelecionado);
+                atualizarListaLivros();
             } else {
-                JOptionPane.showMessageDialog(this, "Selecione um livro para devolver!", "Aviso", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Selecione um livro!", "Aviso", JOptionPane.WARNING_MESSAGE);
             }
         });
-
 
         //atualizacao da lista de livros cada vez que uma letra é digitada
         campoPesquisa.getDocument().addDocumentListener(new DocumentListener() {
@@ -189,10 +191,5 @@ public class IndexHome extends JFrame {
             return label;
         }
     }
+
 }
-
-
-
-
-
-

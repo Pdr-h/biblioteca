@@ -1,5 +1,6 @@
 package connections;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -165,6 +166,37 @@ public class LivroDAO {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void devolverLivro(String nomeUsuario, String tituloLivro) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try {
+            conn = Connect.getConnect();
+            String sql = "DELETE ul " +
+                    "FROM user_livro ul " +
+                    "JOIN usuario u ON ul.id_usuario = u.id_usuario " +
+                    "JOIN dados_dos_livros l ON ul.id_livro = l.id_livro " +
+                    "WHERE u.nome = ? AND l.titulo = ?";
+            stmt = conn.prepareStatement(sql);
+            stmt.setString(1, nomeUsuario);
+            stmt.setString(2, tituloLivro);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            // Fechar conexão e declarações
+            try {
+                if (stmt != null) {
+                    stmt.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 
