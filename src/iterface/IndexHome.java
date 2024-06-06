@@ -75,8 +75,51 @@ public class IndexHome extends JFrame {
         JScrollPane scrollPane = new JScrollPane(livroList);
 
         //preenchimento da lista de acordo com os livros emprestados por um usuario
-        livroDAO.preencherListaLivros(livroListModel, nomeUsuario);
+        livroDAO.preencherLivroUser(livroListModel, nomeUsuario);
         painelCentro.add(scrollPane, BorderLayout.CENTER);
+
+        //Botão dados do livro
+        JButton dadosButton = new JButton("Dados do Livro");
+        dadosButton.addActionListener(e -> {
+            int indiceSelecionado = livroList.getSelectedIndex(); // Obtém o índice selecionado da lista atualizada
+            if (indiceSelecionado != -1) {
+                String tituloSelecionado = livroList.getModel().getElementAt(indiceSelecionado); // Obtém o título do livro da lista atualizada
+                Livro livroSelecionado = LivroCompleto.getLivroPorTitulo(tituloSelecionado);
+
+                if (livroSelecionado != null) {
+                    // Verifica se o livro selecionado é uma instância de LivroCompleto
+                    if (livroSelecionado instanceof LivroCompleto) {
+                        LivroCompleto livroCompleto = (LivroCompleto) livroSelecionado;
+                        // Construir mensagem com todas as informações do livro
+                        String mensagem = "Título: " + livroCompleto.getTitulo() + "\n" +
+                                "Autor: " + livroCompleto.getAutor() + "\n" +
+                                "Classificação: " + livroCompleto.getClassificacao() + "\n" +
+                                "Avaliação Público: " + livroCompleto.getAvaliacaoPub() + "\n" +
+                                "Ano de Publicação: " + livroCompleto.getAnoPub() + "\n" +
+                                "Local de Publicação: " + livroCompleto.getLocalPub() + "\n" +
+                                "ISBN: " + livroCompleto.getIsbn();
+
+                        JOptionPane.showMessageDialog(this, mensagem, "Detalhes do Livro", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(this, "Erro ao recuperar os dados do livro.", "Erro", JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Selecione um livro!", "Aviso", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+
+        //botao devolver livro
+        JButton devolverButton = new JButton("Devolver Livro");
+        devolverButton.addActionListener(e -> {
+            int indiceSelecionado = livroList.getSelectedIndex();
+            if (indiceSelecionado != -1) {
+                livroListModel.removeElementAt(indiceSelecionado);
+            } else {
+                JOptionPane.showMessageDialog(this, "Selecione um livro para devolver!", "Aviso", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+
 
         //atualizacao da lista de livros cada vez que uma letra é digitada
         campoPesquisa.getDocument().addDocumentListener(new DocumentListener() {
@@ -95,6 +138,13 @@ public class IndexHome extends JFrame {
         });
         add(mainPanel);
         // Adiciona a árvore ao painel principal
+        JPanel botoesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        botoesPanel.add(dadosButton);
+        botoesPanel.add(devolverButton);
+        botoesPanel.add(devolverButton);
+
+        // Adiciona o painel de botões ao painel principal
+        painelCentro.add(botoesPanel, BorderLayout.SOUTH);
         mainPanel.add(painelCentro, BorderLayout.CENTER);
         mainPanel.add(new JScrollPane(directoryTree), BorderLayout.WEST); // Adiciona a arvore em um JScrollPane para rolagem
         setVisible(true);

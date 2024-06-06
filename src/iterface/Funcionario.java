@@ -107,7 +107,6 @@ public class Funcionario extends JFrame {
             }
         });
 
-
         // Editar livro
         editarButton.addActionListener(e -> {
             int indiceSelecionado = livroList.getSelectedIndex();
@@ -137,12 +136,11 @@ public class Funcionario extends JFrame {
             }
         });
 
-
-        // Botão Dados
+        //Botão dados do livro
         dadosButton.addActionListener(e -> {
-            int indiceSelecionado = livroList.getSelectedIndex();
+            int indiceSelecionado = livroList.getSelectedIndex(); // Obtém o índice selecionado da lista atualizada
             if (indiceSelecionado != -1) {
-                String tituloSelecionado = livroListModel.getElementAt(indiceSelecionado);
+                String tituloSelecionado = livroList.getModel().getElementAt(indiceSelecionado); // Obtém o título do livro da lista atualizada
                 Livro livroSelecionado = LivroCompleto.getLivroPorTitulo(tituloSelecionado);
 
                 if (livroSelecionado != null) {
@@ -173,16 +171,13 @@ public class Funcionario extends JFrame {
             new Sair(Funcionario.this);
         });
 
-
-
-
         // Preenche a lista de livros
         preencherListaLivros();
         setVisible(true);
     }
     //Metodo pra retornar os livros
     private void preencherListaLivros() {
-        livroListModel = livroDAO.getLivros();
+        livroListModel = livroDAO.getTitulo();
         livroList.setModel(livroListModel);
     }
     //Metodo para atualizacao da lista com os livros enquanto pesquisa

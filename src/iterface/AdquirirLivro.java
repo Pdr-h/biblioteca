@@ -17,6 +17,7 @@ public class AdquirirLivro extends JFrame {
     private JList<String> livroList;
     private String emailUsuario;
     private LivroDAO livroDAO;
+    private JComboBox<String> criterioComboBox;
 
     public AdquirirLivro(String emailUsuario) {
         this.emailUsuario = emailUsuario;
@@ -40,24 +41,41 @@ public class AdquirirLivro extends JFrame {
         contentPane.add(scrollPane, BorderLayout.CENTER);
         contentPane.add(campoPesquisa, BorderLayout.NORTH);
 
+        JOptionPane.showMessageDialog(null, "Classificações Disponíveis:\n" +
+                "- Ficção Científica\n" +
+                "- Romance\n" +
+                "- Fantasia\n" +
+                "- Policial\n" +
+                "- Clássico\n" +
+                "- Ficção\n" +
+                "- Mistério\n" +
+                "- Horror\n\n" +
+                "Avaliações do Público: 1-5 estrelas", "Informações", JOptionPane.INFORMATION_MESSAGE);
+
+        // Adicione um JComboBox para os critérios de pesquisa ao lado da barra de pesquisa
+        String[] criterios = {"Titulo", "Autor", "Classificaçao", "Avaliaçao Publico", "Ano Publicaçao", "Local Publicaçao", "ISBN"};
+        criterioComboBox = new JComboBox<>(criterios);
+        criterioComboBox.setBackground(Color.decode("#55AA98"));
+        criterioComboBox.setFont(new Font("ARIAL", Font.BOLD, 17));
+        contentPane.add(criterioComboBox, BorderLayout.WEST);
         //atualizacao da lista de livros cada vez que uma letra é digitada
         campoPesquisa.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
-                atualizarListaLivros();
+                pesquisarLivros();
             }
             @Override
             public void removeUpdate(DocumentEvent e) {
-                atualizarListaLivros();
+                pesquisarLivros();
             }
             @Override
             public void changedUpdate(DocumentEvent e) {
-                atualizarListaLivros();
+                pesquisarLivros();
             }
         });
 
         // Botão Emprestimo do livro
-        JButton botaoAdquirir = new JButton("EMPRESTIMO");
+        JButton botaoAdquirir = new JButton("Emprestimo");
         botaoAdquirir.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 // Verifica se algum livro foi selecionado na lista
@@ -102,6 +120,19 @@ public class AdquirirLivro extends JFrame {
                 }
             }
         });
+
+    //botao voltar
+    JButton voltarButton = new JButton("Voltar");
+    voltarButton.addActionListener(e -> {
+        // Instancia a classe IndexHome
+        IndexHome indexHome = new IndexHome(emailUsuario);
+        // Torna a janela IndexHome visível
+        indexHome.setVisible(true);
+        // Fecha a janela atual (AdquirirLivro)
+        dispose();
+    });
+
+        //botao dados do livro
         JButton dadosButton = new JButton("Dados do Livro");
         dadosButton.addActionListener(e -> {
             int indiceSelecionado = livroList.getSelectedIndex();
@@ -135,26 +166,61 @@ public class AdquirirLivro extends JFrame {
         JPanel botoesPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         botoesPanel.add(dadosButton);
         botoesPanel.add(botaoAdquirir);
+        botoesPanel.add(voltarButton);
         contentPane.add(botoesPanel, BorderLayout.SOUTH);
 
         preencherListaLivros();
         setVisible(true);
     }
 
-    //Metodo para atualizacao da lista com os livros enquanto pesquisa
-    public void atualizarListaLivros() {
-        String textoPesquisa = campoPesquisa.getText().toLowerCase();
-        DefaultListModel<String> novoModelo = new DefaultListModel<>();
-        for (int i = 0; i < livroListModel.size(); i++) {
-            String item = livroListModel.getElementAt(i);
-            if (item.toLowerCase().contains(textoPesquisa)) {
-                novoModelo.addElement(item);
-            }
-        }
-        livroList.setModel(novoModelo);
-    }
     private void preencherListaLivros() {
-        livroListModel = livroDAO.getLivros();
+        livroListModel = livroDAO.getTitulo();
         livroList.setModel(livroListModel);
+    }
+
+    // Método para pesquisar livros com base no critério selecionado e no texto de pesquisa
+    private void pesquisarLivros() {
+        String textoPesquisa = campoPesquisa.getText().toLowerCase();
+        String criterioSelecionado = (String) criterioComboBox.getSelectedItem();
+        String sqlQuery = "";
+
+        // consulta SQL com base no critério selecionado
+        switch (criterioSelecionado) {
+            case "Titulo":
+                sqlQuery = "SELECT * FROM dados_dos_livros WHERE titulo LIKE ?";
+                break;
+            case "Classificaçao":
+                sqlQuery = "SELECT * FROM dados_dos_livros WHERE classificacao LIKE ?";
+                break;
+            case "Autor":
+                sqlQuery = "SELECT * FROM dados_dos_livros WHERE autor LIKE ?";
+                break;
+            case "Avaliaçao Publico":
+                sqlQuery = "SELECT * FROM dados_dos_livros WHERE avaliacao_publico LIKE ?";
+                 break;
+            case "Ano Publicaçao":
+                sqlQuery = "SELECT * FROM dados_dos_livros WHERE ano_publicacao LIKE ?";
+                break;
+            case "Local Publicaçao":
+                sqlQuery = "SELECT * FROM dados_dos_livros WHERE local_publicacao LIKE ?";
+                break;
+            case "ISBN":
+                sqlQuery = "SELECT * FROM dados_dos_livros WHERE isbn LIKE ?";
+                break;
+        }
+        // Executa a consulta SQL no banco de dados e atualize a lista de livros com os resultados
+        try (PreparedStatement stmt = Connect.getConnect().prepareStatement(sqlQuery)) {
+            stmt.setString(1, "%" + textoPesquisa + "%");
+            try (ResultSet rs = stmt.executeQuery()) {
+                livroListModel.clear();
+                while (rs.next()) {
+                    // Adiciona os resultados atualziados da pesquisa à lista de livros
+                    String tituloLivro = rs.getString("titulo");
+                    livroListModel.addElement(tituloLivro);
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
     }
 }

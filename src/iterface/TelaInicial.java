@@ -39,7 +39,7 @@ public class TelaInicial extends JFrame {
         painelEsquerdo.add(labelBemVindo, gbc);
 
         // Subtítulo
-        JLabel labelSubtitulo = new JLabel("Bem-vindo à Biblioteca tal..");
+        JLabel labelSubtitulo = new JLabel("Um livro é um sonho que você segura na mão");
         labelSubtitulo.setFont(new Font("Verdana", Font.ITALIC, 18));
         labelSubtitulo.setForeground(Color.WHITE);
         gbc.gridy = 1;
@@ -60,7 +60,6 @@ public class TelaInicial extends JFrame {
                 cadastroUsuario.setVisible(true);
             }
         });
-
 
         // Painel direito
         JPanel painelDireito = new JPanel();

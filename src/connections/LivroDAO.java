@@ -3,7 +3,7 @@ package connections;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import javax.swing.DefaultListModel;
+import javax.swing.*;
 
 public class LivroDAO {
 
@@ -30,7 +30,7 @@ public class LivroDAO {
             stmt.setString(1, titulo);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "LIVRO EMPRESTADO A UM USUARIO!", "ERROR", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -52,9 +52,9 @@ public class LivroDAO {
         }
     }
 
-    public DefaultListModel<String> getLivros() {
+    public DefaultListModel<String> getTitulo() {
         DefaultListModel<String> livrosModel = new DefaultListModel<>();
-        String sql = "SELECT * FROM dados_dos_livros";
+        String sql = "SELECT titulo FROM dados_dos_livros";
         try (PreparedStatement stmt = Connect.getConnect().prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
@@ -66,7 +66,6 @@ public class LivroDAO {
         }
         return livrosModel;
     }
-
 
     public String getAutorLivro(String titulo) {
         String sql = "SELECT autor FROM dados_dos_livros WHERE titulo = ?";
@@ -152,8 +151,8 @@ public class LivroDAO {
         return null;
     }
     //preenchimento da lista de acordo com os livros emprestados por um usuario
-    public void preencherListaLivros(DefaultListModel<String> livrosModel, String emailUsuario) {
-        String sql = "SELECT titulo, autor, classificacao FROM dados_dos_livros " +
+    public void preencherLivroUser(DefaultListModel<String> livrosModel, String emailUsuario) {
+        String sql = "SELECT titulo FROM dados_dos_livros " +
                 "INNER JOIN user_livro ON dados_dos_livros.id_livro = user_livro.id_livro " +
                 "INNER JOIN usuario ON user_livro.id_usuario = usuario.id_usuario " +
                 "WHERE usuario.email = ?";
@@ -162,14 +161,12 @@ public class LivroDAO {
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 String titulo = rs.getString("titulo");
-                String autor = rs.getString("autor");
-                String classificacao = rs.getString("classificacao");
-                String livroInfo = String.format("%s - %s - %s", titulo, autor, classificacao);
-                livrosModel.addElement(livroInfo);
+                livrosModel.addElement(titulo); // Adiciona apenas o título do livro à lista
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
+
 
 }
